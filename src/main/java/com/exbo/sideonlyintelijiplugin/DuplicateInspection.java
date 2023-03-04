@@ -1,5 +1,6 @@
 package com.exbo.sideonlyintelijiplugin;
 
+import com.intellij.codeInsight.hint.HintManager;
 import com.intellij.codeInspection.*;
 import com.intellij.psi.*;
 import org.jetbrains.annotations.NotNull;
@@ -10,7 +11,7 @@ import java.util.Objects;
 import java.util.Set;
 
 
-public class SideOnlyInspection extends AbstractBaseJavaLocalInspectionTool {
+public class DuplicateInspection extends AbstractBaseJavaLocalInspectionTool {
     static final String SIDE_ONLY_ANNOTATION = "net.exbo.sideonly.annotation.SideOnly";
 
     @Override
@@ -19,6 +20,14 @@ public class SideOnlyInspection extends AbstractBaseJavaLocalInspectionTool {
         if (sideAnnotation != null) {
             ProblemsHolder problemsHolder = new ProblemsHolder(manager, method.getContainingFile(), isOnTheFly);
             checkDuplicate(sideAnnotation, problemsHolder);
+//            HintManager.getInstance().showInformationHint(manager.);
+//            HintManager.getInstance().showInformationHint(
+//                    manager,
+//                    method.toString(),
+//                    null
+//            )
+//            System.out.println(method + " " + method.getParent() + " " + method.getParent() + " ");
+
             return problemsHolder.getResultsArray();
         }
         return ProblemDescriptor.EMPTY_ARRAY;

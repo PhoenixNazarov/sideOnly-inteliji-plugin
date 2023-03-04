@@ -20,16 +20,18 @@
     <!-- Product and plugin compatibility requirements.
          Read more: https://plugins.jetbrains.com/docs/intellij/plugin-compatibility.html -->
     <depends>com.intellij.modules.platform</depends>
-    <depends>com.intellij.java</depends>
+    <depends>com.intellij.modules.java</depends>
 
     <!-- Extension points defined by the plugin.
          Read more: https://plugins.jetbrains.com/docs/intellij/plugin-extension-points.html -->
     <extensions defaultExtensionNs="com.intellij">
-        <localInspection implementationClass="com.exbo.sideonlyintelijiplugin.SideOnlyInspection"
-                         language="JAVA"
-                         displayName="asdaskdaskjdna"
-                         enabledByDefault="true"
-                         groupName="Side"/>
+<!--        <localInspection implementationClass="com.exbo.sideonlyintelijiplugin.DuplicateInspection"-->
+<!--                         language="JAVA"-->
+<!--                         displayName="asdaskdaskjdna"-->
+<!--                         enabledByDefault="true"-->
+<!--                         groupName="Side"/>-->
+        <codeInsight.inlayProvider language="JAVA"
+                                        implementationClass="com.exbo.sideonlyintelijiplugin.SideInlayProvider"
+        />
     </extensions>
-    <resource-bundle/>
 </idea-plugin>
