@@ -5,6 +5,7 @@ import com.intellij.psi.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 
@@ -53,8 +54,36 @@ public class BadUsageInspection extends AbstractBaseJavaLocalInspectionTool {
                                                               @NotNull InspectionManager manager,
                                                               boolean isOnTheFly) {
         PsiElement element = psiAssignmentExpression.getLExpression();
-        System.out.println(psiAssignmentExpression + " " + element + " " + PsiUtils.getElementSideValues(element));
+        if (element instanceof PsiReferenceExpression) {
+            PsiReferenceExpression referenceExpression = (PsiReferenceExpression) element;
+            ProblemsHolder problemsHolder = new ProblemsHolder(manager, psiAssignmentExpression.getContainingFile(), isOnTheFly);
+            checkError(element, referenceExpression.resolve(), problemsHolder, element);
+            return problemsHolder.getResultsArray();
+        }
+        return ProblemDescriptor.EMPTY_ARRAY;
+    }
 
+    public ProblemDescriptor @Nullable [] checkDeclarationCall(@NotNull PsiDeclarationStatement statement,
+                                                              @NotNull InspectionManager manager,
+                                                              boolean isOnTheFly) {
+//        PsiElement element = ;
+        PsiElement[] elements = statement.getDeclaredElements();
+        if (elements.length >= 1) {
+            PsiElement element = elements[0];
+            if (element instanceof PsiLocalVariable) {
+                PsiLocalVariable variable = (PsiLocalVariable) element;
+                PsiElement parent = variable.getInitializer();
+                if (parent != null) {
+                    PsiReference mParent = parent.getReference();
+                    if (mParent != null) {
+                        ProblemsHolder problemsHolder = new ProblemsHolder(manager, statement.getContainingFile(), isOnTheFly);
+                        checkError(parent, mParent.resolve(), problemsHolder, parent);
+                        return problemsHolder.getResultsArray();
+                    }
+                }
+                System.out.println();
+            }
+        }
         return ProblemDescriptor.EMPTY_ARRAY;
     }
 
@@ -92,6 +121,12 @@ public class BadUsageInspection extends AbstractBaseJavaLocalInspectionTool {
             public void visitAssignmentExpression(PsiAssignmentExpression expression) {
                 super.visitAssignmentExpression(expression);
                 addDescriptors(checkAssignmentCall(expression, holder.getManager(), isOnTheFly));
+            }
+
+            @Override
+            public void visitDeclarationStatement(PsiDeclarationStatement statement) {
+                super.visitDeclarationStatement(statement);
+                addDescriptors(checkDeclarationCall(statement, holder.getManager(), isOnTheFly));
             }
 
             private void addDescriptors(final ProblemDescriptor[] descriptors) {
