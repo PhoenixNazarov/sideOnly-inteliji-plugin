@@ -5,14 +5,15 @@ import com.intellij.codeInsight.hints.presentation.InlayPresentation;
 import com.intellij.codeInsight.hints.presentation.RecursivelyUpdatingRootPresentation;
 import com.intellij.lang.Language;
 import com.intellij.openapi.editor.Editor;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiMethod;
+import com.intellij.psi.*;
+import com.siyeh.ig.psiutils.MethodUtils;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.util.Objects;
+import java.util.Set;
 
 @SuppressWarnings("UnstableApiUsage")
 public class SideInlayProvider implements InlayHintsProvider<NoSettings> {
@@ -78,12 +79,21 @@ public class SideInlayProvider implements InlayHintsProvider<NoSettings> {
         @Override
         public boolean collect(@NotNull PsiElement psiElement, @NotNull Editor editor, @NotNull InlayHintsSink inlayHintsSink) {
             if (psiElement instanceof PsiMethod) {
-                InlayPresentation presentation = getFactory().text("@SideOnly(CLIENT)");
+                InlayPresentation presentation = getFactory().text(PsiUtils.getMethodSideValues((PsiMethod) psiElement).toString());
                 // todo column
                 BlockConstraints block = new BlockConstraints(false, 100, 1, 8);
                 RecursivelyUpdatingRootPresentation root = new RecursivelyUpdatingRootPresentation(presentation);
                 inlayHintsSink.addBlockElement(editor.getDocument().getLineNumber(psiElement.getTextOffset()), true, root, block);
             }
+
+            if (psiElement instanceof PsiClass) {
+                InlayPresentation presentation = getFactory().text(PsiUtils.getClassSideValues((PsiClass) psiElement).toString());
+                // todo column
+                BlockConstraints block = new BlockConstraints(false, 100, 1, 8);
+                RecursivelyUpdatingRootPresentation root = new RecursivelyUpdatingRootPresentation(presentation);
+                inlayHintsSink.addBlockElement(editor.getDocument().getLineNumber(psiElement.getTextOffset()), true, root, block);
+            }
+
             return true;
         }
     }
