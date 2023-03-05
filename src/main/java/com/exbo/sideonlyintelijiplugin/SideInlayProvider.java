@@ -5,14 +5,12 @@ import com.intellij.codeInsight.hints.presentation.InlayPresentation;
 import com.intellij.codeInsight.hints.presentation.RecursivelyUpdatingRootPresentation;
 import com.intellij.lang.Language;
 import com.intellij.openapi.editor.Editor;
-import com.intellij.openapi.editor.ex.util.EditorUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiMethod;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import com.intellij.codeInsight.hints.InlayHintsUtils;
 
 import javax.swing.*;
 
@@ -72,21 +70,19 @@ public class SideInlayProvider implements InlayHintsProvider<NoSettings> {
     }
 
 
-    private class Collector extends FactoryInlayHintsCollector {
+    private static class Collector extends FactoryInlayHintsCollector {
         public Collector(@NotNull Editor editor) {
             super(editor);
         }
 
         @Override
         public boolean collect(@NotNull PsiElement psiElement, @NotNull Editor editor, @NotNull InlayHintsSink inlayHintsSink) {
-            System.out.println(psiElement);
             if (psiElement instanceof PsiMethod) {
                 InlayPresentation presentation = getFactory().text("@SideOnly(CLIENT)");
+                // todo column
                 BlockConstraints block = new BlockConstraints(false, 100, 1, 8);
                 RecursivelyUpdatingRootPresentation root = new RecursivelyUpdatingRootPresentation(presentation);
                 inlayHintsSink.addBlockElement(editor.getDocument().getLineNumber(psiElement.getTextOffset()), true, root, block);
-//                inlayHintsSink.addBlockElement(psiElement.getTextOffset(), true, presentation, block);
-                return true;
             }
             return true;
         }

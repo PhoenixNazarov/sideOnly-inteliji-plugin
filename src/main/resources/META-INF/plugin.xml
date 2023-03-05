@@ -25,13 +25,19 @@
     <!-- Extension points defined by the plugin.
          Read more: https://plugins.jetbrains.com/docs/intellij/plugin-extension-points.html -->
     <extensions defaultExtensionNs="com.intellij">
-<!--        <localInspection implementationClass="com.exbo.sideonlyintelijiplugin.DuplicateInspection"-->
-<!--                         language="JAVA"-->
-<!--                         displayName="asdaskdaskjdna"-->
-<!--                         enabledByDefault="true"-->
-<!--                         groupName="Side"/>-->
+        <localInspection implementationClass="com.exbo.sideonlyintelijiplugin.DuplicateInspection"
+                         language="JAVA"
+                         displayName="asdaskdaskjdna"
+                         enabledByDefault="true"
+                         groupName="Side"/>
         <codeInsight.inlayProvider language="JAVA"
-                                        implementationClass="com.exbo.sideonlyintelijiplugin.SideInlayProvider"
+                                   implementationClass="com.exbo.sideonlyintelijiplugin.SideInlayProvider"
+        />
+        <localInspection implementationClass="com.exbo.sideonlyintelijiplugin.BadUsageInspection"
+                          displayName="SideOnly"
+                          enabledByDefault="true"
+                          groupName="Sideqwe"
+                          language="JAVA"
         />
     </extensions>
 </idea-plugin>
