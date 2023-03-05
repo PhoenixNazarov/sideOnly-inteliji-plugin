@@ -96,6 +96,11 @@ public class PsiUtils {
     }
 
 
+    public static String convertAnnotationsToString(List<String> annotations) {
+        String text = "@SideOnly()";
+        return text;
+    }
+
     private static List<String> getSideAnnotationParams(PsiAnnotation annotation) {
         List<String> values = List.of();
         PsiAnnotationMemberValue annotationMemberValue = annotation.getParameterList().getAttributes()[0].getDetachedValue();

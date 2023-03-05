@@ -57,15 +57,15 @@ public class BadUsageInspection extends AbstractBaseJavaLocalInspectionTool {
         if (element instanceof PsiReferenceExpression) {
             PsiReferenceExpression referenceExpression = (PsiReferenceExpression) element;
             ProblemsHolder problemsHolder = new ProblemsHolder(manager, psiAssignmentExpression.getContainingFile(), isOnTheFly);
-            checkError(element, referenceExpression.resolve(), problemsHolder, element);
+            checkError(element, referenceExpression.resolve(), problemsHolder, psiAssignmentExpression);
             return problemsHolder.getResultsArray();
         }
         return ProblemDescriptor.EMPTY_ARRAY;
     }
 
     public ProblemDescriptor @Nullable [] checkDeclarationCall(@NotNull PsiDeclarationStatement statement,
-                                                              @NotNull InspectionManager manager,
-                                                              boolean isOnTheFly) {
+                                                               @NotNull InspectionManager manager,
+                                                               boolean isOnTheFly) {
 //        PsiElement element = ;
         PsiElement[] elements = statement.getDeclaredElements();
         if (elements.length >= 1) {
@@ -77,7 +77,7 @@ public class BadUsageInspection extends AbstractBaseJavaLocalInspectionTool {
                     PsiReference mParent = parent.getReference();
                     if (mParent != null) {
                         ProblemsHolder problemsHolder = new ProblemsHolder(manager, statement.getContainingFile(), isOnTheFly);
-                        checkError(parent, mParent.resolve(), problemsHolder, parent);
+                        checkError(parent, mParent.resolve(), problemsHolder, statement);
                         return problemsHolder.getResultsArray();
                     }
                 }

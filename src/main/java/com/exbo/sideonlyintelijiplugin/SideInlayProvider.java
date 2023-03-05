@@ -45,13 +45,7 @@ public class SideInlayProvider implements InlayHintsProvider<NoSettings> {
     @NotNull
     @Override
     public ImmediateConfigurable createConfigurable(@NotNull NoSettings noSettings) {
-        return new ImmediateConfigurable() {
-            @NotNull
-            @Override
-            public JComponent createComponent(@NotNull ChangeListener changeListener) {
-                return new JPanel();
-            }
-        };
+        return changeListener -> new JPanel();
     }
 
     @NotNull
@@ -79,12 +73,17 @@ public class SideInlayProvider implements InlayHintsProvider<NoSettings> {
 
         @Override
         public boolean collect(@NotNull PsiElement psiElement, @NotNull Editor editor, @NotNull InlayHintsSink inlayHintsSink) {
+
+            int offset = psiElement.getTextRange().getStartOffset();
+            int line = editor.getDocument().getLineNumber(offset);
+            int lineStart = editor.getDocument().getLineStartOffset(line);
+            int indent = offset - lineStart;
+
             if (psiElement instanceof PsiMethod) {
                 List<String> list = PsiUtils.getMethodSideValues((PsiMethod) psiElement);
                 if (list != null && !PsiUtils.hasElementAnnotation((PsiModifierListOwner) psiElement)) {
-                    InlayPresentation presentation = getFactory().text(list.toString());
-                    // todo column
-                    BlockConstraints block = new BlockConstraints(false, 100, 1, 8);
+                    InlayPresentation presentation = getFactory().text(list.toString());;
+                    BlockConstraints block = new BlockConstraints(false, 100, 1, indent);
                     RecursivelyUpdatingRootPresentation root = new RecursivelyUpdatingRootPresentation(presentation);
                     inlayHintsSink.addBlockElement(editor.getDocument().getLineNumber(psiElement.getTextOffset()), true, root, block);
                 }
@@ -94,8 +93,7 @@ public class SideInlayProvider implements InlayHintsProvider<NoSettings> {
                 List<String> list = PsiUtils.getClassSideValues((PsiClass) psiElement);
                 if (list != null && !PsiUtils.hasElementAnnotation((PsiModifierListOwner) psiElement)) {
                     InlayPresentation presentation = getFactory().text(list.toString());
-                    // todo column
-                    BlockConstraints block = new BlockConstraints(false, 100, 1, 8);
+                    BlockConstraints block = new BlockConstraints(false, 100, 1, indent);
                     RecursivelyUpdatingRootPresentation root = new RecursivelyUpdatingRootPresentation(presentation);
                     inlayHintsSink.addBlockElement(editor.getDocument().getLineNumber(psiElement.getTextOffset()), true, root, block);
                 }
