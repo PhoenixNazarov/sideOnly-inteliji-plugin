@@ -12,6 +12,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
@@ -79,19 +80,25 @@ public class SideInlayProvider implements InlayHintsProvider<NoSettings> {
         @Override
         public boolean collect(@NotNull PsiElement psiElement, @NotNull Editor editor, @NotNull InlayHintsSink inlayHintsSink) {
             if (psiElement instanceof PsiMethod) {
-                InlayPresentation presentation = getFactory().text(PsiUtils.getMethodSideValues((PsiMethod) psiElement).toString());
-                // todo column
-                BlockConstraints block = new BlockConstraints(false, 100, 1, 8);
-                RecursivelyUpdatingRootPresentation root = new RecursivelyUpdatingRootPresentation(presentation);
-                inlayHintsSink.addBlockElement(editor.getDocument().getLineNumber(psiElement.getTextOffset()), true, root, block);
+                List<String> list = PsiUtils.getMethodSideValues((PsiMethod) psiElement);
+                if (list != null && !PsiUtils.hasElementAnnotation((PsiModifierListOwner) psiElement)) {
+                    InlayPresentation presentation = getFactory().text(list.toString());
+                    // todo column
+                    BlockConstraints block = new BlockConstraints(false, 100, 1, 8);
+                    RecursivelyUpdatingRootPresentation root = new RecursivelyUpdatingRootPresentation(presentation);
+                    inlayHintsSink.addBlockElement(editor.getDocument().getLineNumber(psiElement.getTextOffset()), true, root, block);
+                }
             }
 
             if (psiElement instanceof PsiClass) {
-                InlayPresentation presentation = getFactory().text(PsiUtils.getClassSideValues((PsiClass) psiElement).toString());
-                // todo column
-                BlockConstraints block = new BlockConstraints(false, 100, 1, 8);
-                RecursivelyUpdatingRootPresentation root = new RecursivelyUpdatingRootPresentation(presentation);
-                inlayHintsSink.addBlockElement(editor.getDocument().getLineNumber(psiElement.getTextOffset()), true, root, block);
+                List<String> list = PsiUtils.getClassSideValues((PsiClass) psiElement);
+                if (list != null && !PsiUtils.hasElementAnnotation((PsiModifierListOwner) psiElement)) {
+                    InlayPresentation presentation = getFactory().text(list.toString());
+                    // todo column
+                    BlockConstraints block = new BlockConstraints(false, 100, 1, 8);
+                    RecursivelyUpdatingRootPresentation root = new RecursivelyUpdatingRootPresentation(presentation);
+                    inlayHintsSink.addBlockElement(editor.getDocument().getLineNumber(psiElement.getTextOffset()), true, root, block);
+                }
             }
 
             return true;

@@ -4,11 +4,7 @@ import com.intellij.codeInsight.AnnotationUtil;
 import com.intellij.openapi.roots.ProjectFileIndex;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
-import com.intellij.psi.util.ClassUtil;
 import com.intellij.psi.util.PsiUtilCore;
-import com.intellij.refactoring.util.classRefs.ClassReferenceSearchingScanner;
-import com.siyeh.ig.dependency.DependencyUtils;
-import com.siyeh.ig.psiutils.MethodUtils;
 
 import java.util.*;
 
@@ -22,6 +18,14 @@ public class PsiUtils {
 
     public static List<String> getClassSideValues(PsiClass psiClass) {
         return getAllAnnotations(psiClass);
+    }
+
+    public static List<String> getElementSideValues(PsiElement element) {
+        return getAllAnnotations(element);
+    }
+
+    public static boolean hasElementAnnotation(PsiModifierListOwner element) {
+        return AnnotationUtil.findAnnotation(element, Set.of(SIDE_ONLY_ANNOTATION)) != null;
     }
 
     private static List<String> getAllAnnotations(PsiElement element) {
@@ -60,7 +64,7 @@ public class PsiUtils {
                 final String packageName = classOwner.getPackageName();
                 final PsiPackage aPackage = JavaPsiFacade.getInstance(element.getProject()).findPackage(packageName);
                 if (aPackage == null) {
-                    return new ArrayList<>(annotations);
+                    return !first ? new ArrayList<>(annotations) : null;
                 }
                 final PsiAnnotation annotation = AnnotationUtil.findAnnotation(aPackage, Set.of(SIDE_ONLY_ANNOTATION));
                 if (annotation != null) {
@@ -83,12 +87,12 @@ public class PsiUtils {
                         }
                     }
                 } else {
-                    return new ArrayList<>(annotations);
+                    return !first ? new ArrayList<>(annotations) : null;
                 }
             }
             element = element.getContext();
         }
-        return new ArrayList<>(annotations);
+        return !first ? new ArrayList<>(annotations) : null;
     }
 
 

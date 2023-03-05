@@ -1,18 +1,12 @@
 package com.exbo.sideonlyintelijiplugin;
 
-import com.intellij.codeInsight.AnnotationUtil;
 import com.intellij.codeInspection.*;
-import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.psi.*;
-import com.intellij.psi.search.searches.MethodReferencesSearch;
-import com.siyeh.ig.psiutils.MethodUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.uast.UCallExpression;
 
 import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import static com.intellij.psi.search.GlobalSearchScope.moduleWithDependenciesAndLibrariesScope;
 
@@ -21,37 +15,61 @@ public class BadUsageInspection extends AbstractBaseJavaLocalInspectionTool {
     public ProblemDescriptor @Nullable [] checkMethodCall(@NotNull PsiMethodCallExpression methodCall,
                                                           @NotNull InspectionManager manager,
                                                           boolean isOnTheFly) {
-        System.out.println(methodCall.resolveMethod());
-
-        List<String> parentAnnotations = PsiUtils.getMethodSideValues(methodCall.resolveMethod());
-        if (parentAnnotations.size() != 0) {
-            PsiElement parent = methodCall.getParent().getParent().getParent(); // statement -> block -> method
-            if (parent instanceof PsiMethod) {
-                List<String> currentAnnotations = PsiUtils.getMethodSideValues((PsiMethod) parent);
-                System.out.println(parentAnnotations + " " + currentAnnotations);
-                if (!new HashSet<>(currentAnnotations).containsAll(parentAnnotations)) {
-                    ProblemsHolder problemsHolder = new ProblemsHolder(manager, methodCall.getContainingFile(), isOnTheFly);
-                    problemsHolder.registerProblem(methodCall,
-                            currentAnnotations + "\n" + parentAnnotations,
-                            ProblemHighlightType.GENERIC_ERROR);
-                    return problemsHolder.getResultsArray();
-                }
-            }
+        PsiElement element = methodCall.resolveMethod();
+        PsiElement parentElement = methodCall.getParent().getParent().getParent();
+        if (parentElement instanceof PsiMethod) {
+            ProblemsHolder problemsHolder = new ProblemsHolder(manager, methodCall.getContainingFile(), isOnTheFly);
+            checkError(element, parentElement, problemsHolder, methodCall);
+            return problemsHolder.getResultsArray();
         }
-
-        System.out.println();
         return ProblemDescriptor.EMPTY_ARRAY;
     }
 
-    public ProblemDescriptor @Nullable [] checkClassCall(@NotNull PsiClassInitializer initializer,
-                                                          @NotNull InspectionManager manager,
-                                                          boolean isOnTheFly) {
-        System.out.println(initializer);
-        ProblemsHolder problemsHolder = new ProblemsHolder(manager, initializer.getContainingFile(), isOnTheFly);
-        problemsHolder.registerProblem(initializer,
-                "",
-                ProblemHighlightType.GENERIC_ERROR);
-        return problemsHolder.getResultsArray();
+    public ProblemDescriptor @Nullable [] checkClassCall(@NotNull PsiNewExpression newExpression,
+                                                         @NotNull InspectionManager manager,
+                                                         boolean isOnTheFly) {
+        PsiJavaCodeReferenceElement aClass = newExpression.getClassReference();
+        PsiMethod constructor = newExpression.resolveMethod();
+        if (constructor != null) {
+            PsiElement parentElement = newExpression.getParent().getParent().getParent();
+            if (parentElement instanceof PsiMethod) {
+                ProblemsHolder problemsHolder = new ProblemsHolder(manager, newExpression.getContainingFile(), isOnTheFly);
+                checkError(constructor, parentElement, problemsHolder, newExpression);
+                return problemsHolder.getResultsArray();
+            }
+        } else if (aClass != null) {
+            PsiElement element = aClass.resolve();
+            PsiElement parentElement = newExpression.getParent().getParent().getParent();
+            if (parentElement instanceof PsiMethod) {
+                ProblemsHolder problemsHolder = new ProblemsHolder(manager, newExpression.getContainingFile(), isOnTheFly);
+                checkError(element, parentElement, problemsHolder, newExpression);
+                return problemsHolder.getResultsArray();
+            }
+        }
+        return ProblemDescriptor.EMPTY_ARRAY;
+    }
+
+    public ProblemDescriptor @Nullable [] checkAssignmentCall(@NotNull PsiAssignmentExpression psiAssignmentExpression,
+                                                              @NotNull InspectionManager manager,
+                                                              boolean isOnTheFly) {
+        PsiElement element = psiAssignmentExpression.getLExpression();
+        System.out.println(psiAssignmentExpression + " " + element + " " + PsiUtils.getElementSideValues(element));
+
+        return ProblemDescriptor.EMPTY_ARRAY;
+    }
+
+    private void checkError(PsiElement usageElement, PsiElement scopeElement, ProblemsHolder problemsHolder, PsiElement markElement) {
+        List<String> parentAnnotations = PsiUtils.getElementSideValues(usageElement);
+        if (parentAnnotations != null) {
+            List<String> currentAnnotations = PsiUtils.getElementSideValues(scopeElement);
+            if (currentAnnotations != null) {
+                if (!new HashSet<>(currentAnnotations).containsAll(parentAnnotations) || parentAnnotations.size() == 0) {
+                    problemsHolder.registerProblem(markElement,
+                            currentAnnotations + "\n" + parentAnnotations,
+                            ProblemHighlightType.GENERIC_ERROR);
+                }
+            }
+        }
     }
 
 
@@ -65,9 +83,15 @@ public class BadUsageInspection extends AbstractBaseJavaLocalInspectionTool {
             }
 
             @Override
-            public void visitClassInitializer(PsiClassInitializer initializer) {
-                super.visitClassInitializer(initializer);
-                addDescriptors(checkClassCall(initializer, holder.getManager(), isOnTheFly));
+            public void visitNewExpression(PsiNewExpression expression) {
+                super.visitNewExpression(expression);
+                addDescriptors(checkClassCall(expression, holder.getManager(), isOnTheFly));
+            }
+
+            @Override
+            public void visitAssignmentExpression(PsiAssignmentExpression expression) {
+                super.visitAssignmentExpression(expression);
+                addDescriptors(checkAssignmentCall(expression, holder.getManager(), isOnTheFly));
             }
 
             private void addDescriptors(final ProblemDescriptor[] descriptors) {
