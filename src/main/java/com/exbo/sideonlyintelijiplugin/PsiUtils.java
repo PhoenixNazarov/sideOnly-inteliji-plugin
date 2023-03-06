@@ -20,10 +20,20 @@ public class PsiUtils {
         return getAllAnnotations(psiClass);
     }
 
+    /**
+     * Returns the intersection annotations that are associated with this element are returned
+     *
+     * @return the intersection list, or null if the not annotated.
+     */
     public static List<String> getElementSideValues(PsiElement element) {
         return getAllAnnotations(element);
     }
 
+    /**
+     * Check that current element has annotation
+     *
+     * @return the element is annotated.
+     */
     public static boolean hasElementAnnotation(PsiModifierListOwner element) {
         return AnnotationUtil.findAnnotation(element, Set.of(SIDE_ONLY_ANNOTATION)) != null;
     }
@@ -95,10 +105,9 @@ public class PsiUtils {
         return !first ? new ArrayList<>(annotations) : null;
     }
 
-
-    public static String convertAnnotationsToString(List<String> annotations) {
-        String text = "@SideOnly()";
-        return text;
+    private static String convertToString(PsiReferenceExpression expression) {
+        String[] a = expression.toString().split("\\.");
+        return a[a.length - 1];
     }
 
     private static List<String> getSideAnnotationParams(PsiAnnotation annotation) {
@@ -107,10 +116,10 @@ public class PsiUtils {
         if (annotationMemberValue instanceof PsiArrayInitializerMemberValue) {
             values = new ArrayList<>();
             for (PsiAnnotationMemberValue i : ((PsiArrayInitializerMemberValue) annotationMemberValue).getInitializers()) {
-                values.add(i.toString());
+                values.add(convertToString((PsiReferenceExpression) i));
             }
         } else if (annotationMemberValue instanceof PsiReferenceExpression) {
-            values = List.of(annotationMemberValue.toString());
+            values = List.of(convertToString((PsiReferenceExpression) annotationMemberValue));
         }
         return values;
     }

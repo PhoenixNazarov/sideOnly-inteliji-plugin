@@ -6,15 +6,13 @@ import com.intellij.codeInsight.hints.presentation.RecursivelyUpdatingRootPresen
 import com.intellij.lang.Language;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.psi.*;
-import com.siyeh.ig.psiutils.MethodUtils;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+
 
 @SuppressWarnings("UnstableApiUsage")
 public class SideInlayProvider implements InlayHintsProvider<NoSettings> {
@@ -26,20 +24,20 @@ public class SideInlayProvider implements InlayHintsProvider<NoSettings> {
     @NotNull
     @Override
     public SettingsKey<NoSettings> getKey() {
-        return new SettingsKey<>("MySidelkjwlekrjwlkejrlwer");
+        return new SettingsKey<>("SideOnlyProviderKey");
     }
 
     @Nls(capitalization = Nls.Capitalization.Sentence)
     @NotNull
     @Override
     public String getName() {
-        return "LKajsdlkajsd";
+        return "SideOnlyProvider";
     }
 
     @Nullable
     @Override
     public String getPreviewText() {
-        return "LKajsdlkajsd";
+        return "Write SideOnly Annotation";
     }
 
     @NotNull
@@ -82,7 +80,8 @@ public class SideInlayProvider implements InlayHintsProvider<NoSettings> {
             if (psiElement instanceof PsiMethod) {
                 List<String> list = PsiUtils.getMethodSideValues((PsiMethod) psiElement);
                 if (list != null && !PsiUtils.hasElementAnnotation((PsiModifierListOwner) psiElement)) {
-                    InlayPresentation presentation = getFactory().text(list.toString());;
+                    InlayPresentation presentation = getFactory().text("@SideOnly(" + list + ")");
+                    ;
                     BlockConstraints block = new BlockConstraints(false, 100, 1, indent);
                     RecursivelyUpdatingRootPresentation root = new RecursivelyUpdatingRootPresentation(presentation);
                     inlayHintsSink.addBlockElement(editor.getDocument().getLineNumber(psiElement.getTextOffset()), true, root, block);
@@ -92,7 +91,7 @@ public class SideInlayProvider implements InlayHintsProvider<NoSettings> {
             if (psiElement instanceof PsiClass) {
                 List<String> list = PsiUtils.getClassSideValues((PsiClass) psiElement);
                 if (list != null && !PsiUtils.hasElementAnnotation((PsiModifierListOwner) psiElement)) {
-                    InlayPresentation presentation = getFactory().text(list.toString());
+                    InlayPresentation presentation = getFactory().text("@SideOnly" + list + ")");
                     BlockConstraints block = new BlockConstraints(false, 100, 1, indent);
                     RecursivelyUpdatingRootPresentation root = new RecursivelyUpdatingRootPresentation(presentation);
                     inlayHintsSink.addBlockElement(editor.getDocument().getLineNumber(psiElement.getTextOffset()), true, root, block);

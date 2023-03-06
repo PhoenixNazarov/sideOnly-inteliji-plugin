@@ -5,11 +5,9 @@ import com.intellij.psi.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 
-import static com.intellij.psi.search.GlobalSearchScope.moduleWithDependenciesAndLibrariesScope;
 
 
 public class BadUsageInspection extends AbstractBaseJavaLocalInspectionTool {
@@ -57,7 +55,7 @@ public class BadUsageInspection extends AbstractBaseJavaLocalInspectionTool {
         if (element instanceof PsiReferenceExpression) {
             PsiReferenceExpression referenceExpression = (PsiReferenceExpression) element;
             ProblemsHolder problemsHolder = new ProblemsHolder(manager, psiAssignmentExpression.getContainingFile(), isOnTheFly);
-            checkError(element, referenceExpression.resolve(), problemsHolder, psiAssignmentExpression);
+            checkError(referenceExpression.resolve(), element, problemsHolder, psiAssignmentExpression);
             return problemsHolder.getResultsArray();
         }
         return ProblemDescriptor.EMPTY_ARRAY;
@@ -77,7 +75,7 @@ public class BadUsageInspection extends AbstractBaseJavaLocalInspectionTool {
                     PsiReference mParent = parent.getReference();
                     if (mParent != null) {
                         ProblemsHolder problemsHolder = new ProblemsHolder(manager, statement.getContainingFile(), isOnTheFly);
-                        checkError(parent, mParent.resolve(), problemsHolder, statement);
+                        checkError(mParent.resolve(), parent, problemsHolder, statement);
                         return problemsHolder.getResultsArray();
                     }
                 }
@@ -93,8 +91,9 @@ public class BadUsageInspection extends AbstractBaseJavaLocalInspectionTool {
             List<String> currentAnnotations = PsiUtils.getElementSideValues(scopeElement);
             if (currentAnnotations != null) {
                 if (!new HashSet<>(currentAnnotations).containsAll(parentAnnotations) || parentAnnotations.size() == 0) {
+                    String text = "Can not access side-only element from here\n" + "Referenced side(s): " + parentAnnotations + "\n Current side(s): " + currentAnnotations;
                     problemsHolder.registerProblem(markElement,
-                            currentAnnotations + "\n" + parentAnnotations,
+                            text,
                             ProblemHighlightType.GENERIC_ERROR);
                 }
             }
