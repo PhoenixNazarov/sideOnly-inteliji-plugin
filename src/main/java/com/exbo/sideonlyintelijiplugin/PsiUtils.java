@@ -10,6 +10,7 @@ import java.util.*;
 
 public class PsiUtils {
     private static final String SIDE_ONLY_ANNOTATION = "net.exbo.sideonly.annotation.SideOnly";
+    public static final Integer COUNT_IS_ALL_SIDES_INCLUDE = 2;
 
     // List before SideOnly value must be arrayed
     public static List<String> getMethodSideValues(PsiMethod psiMethod) {

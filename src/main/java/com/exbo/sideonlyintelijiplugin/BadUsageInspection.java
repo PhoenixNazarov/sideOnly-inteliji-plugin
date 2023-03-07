@@ -84,6 +84,11 @@ public class BadUsageInspection extends AbstractBaseJavaLocalInspectionTool {
                             text,
                             ProblemHighlightType.GENERIC_ERROR);
                 }
+            } else if (parentAnnotations.size() != 0 && parentAnnotations.size() != PsiUtils.COUNT_IS_ALL_SIDES_INCLUDE) {
+                String text = "Can not access side-only element from non side-only\n" + "Referenced side(s): " + parentAnnotations;
+                problemsHolder.registerProblem(markElement,
+                        text,
+                        ProblemHighlightType.GENERIC_ERROR);
             }
         }
     }
