@@ -9,19 +9,14 @@ import java.util.HashSet;
 import java.util.List;
 
 
-
 public class BadUsageInspection extends AbstractBaseJavaLocalInspectionTool {
     public ProblemDescriptor @Nullable [] checkMethodCall(@NotNull PsiMethodCallExpression methodCall,
                                                           @NotNull InspectionManager manager,
                                                           boolean isOnTheFly) {
         PsiElement element = methodCall.resolveMethod();
-        PsiElement parentElement = methodCall.getParent().getParent().getParent();
-        if (parentElement instanceof PsiMethod) {
-            ProblemsHolder problemsHolder = new ProblemsHolder(manager, methodCall.getContainingFile(), isOnTheFly);
-            checkError(element, parentElement, problemsHolder, methodCall);
-            return problemsHolder.getResultsArray();
-        }
-        return ProblemDescriptor.EMPTY_ARRAY;
+        ProblemsHolder problemsHolder = new ProblemsHolder(manager, methodCall.getContainingFile(), isOnTheFly);
+        checkError(element, methodCall, problemsHolder, methodCall);
+        return problemsHolder.getResultsArray();
     }
 
     public ProblemDescriptor @Nullable [] checkClassCall(@NotNull PsiNewExpression newExpression,
@@ -30,20 +25,14 @@ public class BadUsageInspection extends AbstractBaseJavaLocalInspectionTool {
         PsiJavaCodeReferenceElement aClass = newExpression.getClassReference();
         PsiMethod constructor = newExpression.resolveMethod();
         if (constructor != null) {
-            PsiElement parentElement = newExpression.getParent().getParent().getParent();
-            if (parentElement instanceof PsiMethod) {
-                ProblemsHolder problemsHolder = new ProblemsHolder(manager, newExpression.getContainingFile(), isOnTheFly);
-                checkError(constructor, parentElement, problemsHolder, newExpression);
-                return problemsHolder.getResultsArray();
-            }
+            ProblemsHolder problemsHolder = new ProblemsHolder(manager, newExpression.getContainingFile(), isOnTheFly);
+            checkError(constructor, newExpression, problemsHolder, newExpression);
+            return problemsHolder.getResultsArray();
         } else if (aClass != null) {
             PsiElement element = aClass.resolve();
-            PsiElement parentElement = newExpression.getParent().getParent().getParent();
-            if (parentElement instanceof PsiMethod) {
-                ProblemsHolder problemsHolder = new ProblemsHolder(manager, newExpression.getContainingFile(), isOnTheFly);
-                checkError(element, parentElement, problemsHolder, newExpression);
-                return problemsHolder.getResultsArray();
-            }
+            ProblemsHolder problemsHolder = new ProblemsHolder(manager, newExpression.getContainingFile(), isOnTheFly);
+            checkError(element, newExpression, problemsHolder, newExpression);
+            return problemsHolder.getResultsArray();
         }
         return ProblemDescriptor.EMPTY_ARRAY;
     }
@@ -64,7 +53,6 @@ public class BadUsageInspection extends AbstractBaseJavaLocalInspectionTool {
     public ProblemDescriptor @Nullable [] checkDeclarationCall(@NotNull PsiDeclarationStatement statement,
                                                                @NotNull InspectionManager manager,
                                                                boolean isOnTheFly) {
-//        PsiElement element = ;
         PsiElement[] elements = statement.getDeclaredElements();
         if (elements.length >= 1) {
             PsiElement element = elements[0];
@@ -90,7 +78,7 @@ public class BadUsageInspection extends AbstractBaseJavaLocalInspectionTool {
         if (parentAnnotations != null) {
             List<String> currentAnnotations = PsiUtils.getElementSideValues(scopeElement);
             if (currentAnnotations != null) {
-                if (!new HashSet<>(currentAnnotations).containsAll(parentAnnotations) || parentAnnotations.size() == 0) {
+                if (!new HashSet<>(parentAnnotations).containsAll(currentAnnotations) || parentAnnotations.size() == 0) {
                     String text = "Can not access side-only element from here\n" + "Referenced side(s): " + parentAnnotations + "\n Current side(s): " + currentAnnotations;
                     problemsHolder.registerProblem(markElement,
                             text,
